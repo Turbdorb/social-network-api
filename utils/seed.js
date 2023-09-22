@@ -1,43 +1,33 @@
 const connection = require('../config/connection');
-const { User, Application } = require('../models');
-const { getRandomName, getRandomApplications } = require('./data');
+const { User, Thought } = require('../models');
+const { getRandomUser, getRandomThought } = require('./data');
 
 connection.on('error', (err) => err);
 
 connection.once('open', async () => {
-  console.log('connected');
-  // Delete the collections if they exist
-  let applicationCheck = await connection.db.listCollections({ name: 'applications' }).toArray();
-  if (applicationCheck.length) {
-    await connection.dropCollection('applications');
-  }
-  
-  let userCheck = await connection.db.listCollections({ name: 'users' }).toArray();
-  if (userCheck.length) {
-    await connection.dropCollection('users');
-  }
+    console.log('connected');
+    let thoughtCheck = await connection.db.listCollections({name: 'thoughts'}).toArray();
+    if(thoughtCheck.length){
+        await connection.dropCollection('thoughts');
+    }
 
-  const users = [];
-  const applications = getRandomApplications(10);
+    let userCheck = await connection.db.listCollections({name: 'users'}).toArray();
 
-  for (let i = 0; i < 20; i++) {
-    const fullName = getRandomName();
-    const first = fullName.split(' ')[0];
-    const last = fullName.split(' ')[1];
+    if(userCheck.length){
+        await connection.dropCollection('users');
+    }
 
-    users.push({
-      first,
-      last,
-      age: Math.floor(Math.random() * (99 - 18 + 1) + 18),
-    });
-  }
+    const users = [];
+    const thoughts = []; 
 
-  await User.collection.insertMany(users);
-  await Application.collection.insertMany(applications);
+    for(let i = 0; i<20; i++){
+        users.push(getRandomUser());
+        thoughts.push(getRandomThought());
+    }
 
-  // loop through the saved applications, for each application we need to generate a application response and insert the application responses
-  console.table(users);
-  console.table(applications);
-  console.info('Seeding complete! 🌱');
-  process.exit(0);
+    await User.collection.insertMany(users);
+    await Thought.collection.insertMany(thoughts);
+    console.table(users);
+    console.table(thoughts);
+    console.info('seeding complete!')
 });
